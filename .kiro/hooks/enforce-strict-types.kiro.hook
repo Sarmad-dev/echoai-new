@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Enforce Strict Types",
+  "description": "Scans recently updated TS/TSX files, removes `any` and `unknown`, replaces them with inferred types, and cleans unused variables.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check and fix TypeScript files by running TypeScript compiler with strict flags, using eslint to autofix `any`/`unknown` types and remove unused variables, and optionally running ts-prune to detect unused exports. Focus on the recently changed TS/TSX files and ensure proper type safety."
+  }
+}

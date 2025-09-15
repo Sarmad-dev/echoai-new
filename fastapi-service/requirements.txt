@@ -1,0 +1,63 @@
+# FastAPI and web server
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+gunicorn
+
+# Configuration management
+pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
+
+# Web utilities
+python-multipart>=0.0.6
+httpx>=0.25.0
+
+# LangChain for document processing and RAG
+langchain>=0.1.0
+langchain-community>=0.0.10
+langchain-huggingface>=0.0.1
+langchain-text-splitters>=0.0.1
+
+# LangChain memory for conversation management
+langchain-core>=0.1.0
+
+# Hugging Face models and transformers
+transformers>=4.36.0
+sentence-transformers>=2.2.0
+accelerate>=0.25.0
+bitsandbytes>=0.41.0
+huggingface-hub>=0.20.0
+
+# Hugging Face Inference API client
+huggingface-hub[inference]>=0.20.0
+
+# Database and vector storage
+supabase>=2.3.0
+psycopg2-binary>=2.9.0
+pgvector>=0.2.0
+langchain-postgres>=0.0.6
+
+# Document processing
+unstructured>=0.11.0
+unstructured[pdf]>=0.11.0
+unstructured[docx]>=0.11.0
+python-docx>=0.8.11
+docx2txt>=0.8
+pypdf>=3.17.0
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+
+# Machine learning and tensor operations
+torch>=2.0.0
+numpy>=1.24.0
+
+# Sentiment analysis
+textblob>=0.17.1
+
+# Event system for automation triggers
+inngest>=0.3.0
+
+# OpenAI API for vision analysis
+openai>=1.0.0
+
+# Redis for session-based memory storage
+redis>=5.0.0
