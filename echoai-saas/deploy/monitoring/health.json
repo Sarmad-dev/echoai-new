@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "status": "healthy",
+  "timestamp": "2025-09-11T18:42:55.665Z",
+  "checks": {
+    "files": {
+      "enhanced-widget.js": "available",
+      "enhanced-widget.min.js": "available"
+    },
+    "cdn": {
+      "status": "operational",
+      "latency": "< 100ms"
+    }
+  }
+}

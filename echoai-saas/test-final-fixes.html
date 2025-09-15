@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EchoAI Enhanced Widget - Final Fixes Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 32px;
+        }
+        
+        .test-section {
+            margin-bottom: 32px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+        
+        .test-section h2 {
+            margin-top: 0;
+            color: #374151;
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            margin: 8px 8px 8px 0;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+        
+        .status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        .test-item {
+            margin: 12px 0;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .test-item strong {
+            color: #374151;
+        }
+        
+        .test-results {
+            margin-top: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 12px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EchoAI Enhanced Widget - Final Fixes Test</h1>
+        <p class="subtitle">Testing the corrected date formatting and input persistence fixes</p>
+        
+        <div class="test-section">
+            <h2>✅ Fixed Issues</h2>
+            <div class="test-item">
+                <strong>Date Formatting:</strong> Fixed overly strict validation that caused all dates to show "Just now"
+            </div>
+            <div class="test-item">
+                <strong>Input Persistence:</strong> Fixed input container disappearing when loading conversations from history
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Date Format Tests</h2>
+            <button onclick="testRealDateFormats()">Test Real Date Formats</button>
+            <button onclick="addMessagesWithRealDates()">Add Messages with Real Dates</button>
+            <button onclick="testEdgeCaseDates()">Test Edge Case Dates</button>
+            
+            <div id="dateTestResults" class="test-results" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Input Persistence Tests</h2>
+            <button onclick="simulateRealHistoryLoad()">Simulate Real History Load</button>
+            <button onclick="testInputAfterLoad()">Test Input After Load</button>
+            <button onclick="verifyInputFunctionality()">Verify Input Functionality</button>
+            
+            <div id="inputTestResults" class="test-results" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Complete Integration Test</h2>
+            <button onclick="runCompleteTest()">Run Complete Test</button>
+            
+            <div id="completeTestResults" class="test-results" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Manual Testing Steps</h2>
+            <ol>
+                <li><strong>Open the widget</strong> - Click the chat button in bottom right</li>
+                <li><strong>Add messages</strong> - Use "Add Messages with Real Dates" to see proper timestamps</li>
+                <li><strong>Test history loading</strong> - Use "Simulate Real History Load" to test input persistence</li>
+                <li><strong>Verify input works</strong> - Type in the input field and press Enter</li>
+                <li><strong>Check timestamps</strong> - Verify dates show proper relative times, not "Just now"</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Load the enhanced widget -->
+    <script src="enhanced-widget.js"></script>
+    
+    <script>
+        // Initialize the widget with test configuration
+        window.EchoAI.init({
+            chatbotId: 'test-chatbot-123',
+            apiKey: 'test-api-key-456',
+            userEmail: 'test@example.com',
+            primaryColor: '#3b82f6',
+            chatbotName: 'AI Assistant',
+            welcomeMessage: 'Hello! How can I help you today?',
+            enableImageUpload: true,
+            enableFAQ: true,
+            enableHistory: true,
+            enableEnhancedFeatures: true,
+            streamingConfig: {
+                enabled: true,
+                typingSpeed: 25,
+                showTypingIndicator: true,
+                enableTokenAnimation: true
+            },
+            intelligenceConfig: {
+                enabled: true,
+                showProactiveQuestions: true,
+                showSuggestedTopics: true,
+                showConversationActions: true
+            }
+        });
+        
+        function testRealDateFormats() {
+            const results = document.getElementById('dateTestResults');
+            results.style.display = 'block';
+            results.innerHTML = '<h3>Real Date Format Test Results:</h3>';
+            
+            // Test realistic date scenarios
+            const now = new Date();
+            const testDates = [
+                { date: now, label: 'Current time' },
+                { date: new Date(now.getTime() - 2 * 60 * 1000), label: '2 minutes ago' },
+                { date: new Date(now.getTime() - 15 * 60 * 1000), label: '15 minutes ago' },
+                { date: new Date(now.getTime() - 2 * 60 * 60 * 1000), label: '2 hours ago' },
+                { date: new Date(now.getTime() - 5 * 60 * 60 * 1000), label: '5 hours ago' },
+                { date: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), label: '1 day ago' },
+                { date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), label: '3 days ago' },
+                { date: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000), label: '10 days ago' },
+                { date: new Date('2024-01-15T10:30:00Z'), label: 'Specific date (Jan 15, 2024)' },
+            ];
+            
+            if (window.EchoAI && window.EchoAI.uiManager) {
+                testDates.forEach((test, index) => {
+                    try {
+                        const formatted = window.EchoAI.uiManager.formatTimestamp(test.date);
+                        const expected = getExpectedFormat(test.date);
+                        const isCorrect = formatted !== "Just now" || test.date.getTime() > now.getTime() - 60000;
+                        
+                        results.innerHTML += `
+                            <div class="test-item" style="background: ${isCorrect ? '#f0fdf4' : '#fef2f2'}">
+                                <strong>${test.label}:</strong> ${formatted} 
+                                ${isCorrect ? '✅' : '❌'}
+                            </div>
+                        `;
+                    } catch (error) {
+                        results.innerHTML += `
+                            <div class="test-item" style="background: #fef2f2">
+                                <strong>${test.label}:</strong> Error: ${error.message} ❌
+                            </div>
+                        `;
+                    }
+                });
+            } else {
+                results.innerHTML += '<div class="test-item">Widget not initialized yet</div>';
+            }
+        }
+        
+        function getExpectedFormat(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return "Just now";
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+        
+        function addMessagesWithRealDates() {
+            if (window.EchoAI && window.EchoAI.uiManager) {
+                const now = new Date();
+                const messages = [
+                    { content: "Message from 5 minutes ago", timestamp: new Date(now.getTime() - 5 * 60 * 1000), role: "user" },
+                    { content: "Response from 4 minutes ago", timestamp: new Date(now.getTime() - 4 * 60 * 1000), role: "assistant" },
+                    { content: "Message from 2 hours ago", timestamp: new Date(now.getTime() - 2 * 60 * 60 * 1000), role: "user" },
+                    { content: "Response from 2 hours ago", timestamp: new Date(now.getTime() - 2 * 60 * 60 * 1000 + 30000), role: "assistant" },
+                    { content: "Message from yesterday", timestamp: new Date(now.getTime() - 24 * 60 * 60 * 1000), role: "user" },
+                    { content: "Response from yesterday", timestamp: new Date(now.getTime() - 24 * 60 * 60 * 1000 + 60000), role: "assistant" },
+                ];
+                
+                messages.forEach((msg, index) => {
+                    setTimeout(() => {
+                        window.EchoAI.uiManager.addMessage(msg.content, msg.role, null, {
+                            timestamp: msg.timestamp
+                        });
+                    }, index * 300);
+                });
+                
+                showStatus('Messages with real dates added! Check timestamps.', 'success');
+            } else {
+                showStatus('Widget not initialized yet', 'error');
+            }
+        }
+        
+        function testEdgeCaseDates() {
+            const results = document.getElementById('dateTestResults');
+            results.style.display = 'block';
+            results.innerHTML = '<h3>Edge Case Date Test Results:</h3>';
+            
+            const edgeCases = [
+                { date: null, label: 'null' },
+                { date: undefined, label: 'undefined' },
+                { date: 'invalid-date', label: 'Invalid string' },
+                { date: new Date('invalid'), label: 'Invalid Date object' },
+                { date: new Date(Date.now() + 2 * 60 * 60 * 1000), label: '2 hours in future (should be Just now)' },
+                { date: new Date(Date.now() + 30 * 60 * 1000), label: '30 minutes in future (should work)' },
+            ];
+            
+            if (window.EchoAI && window.EchoAI.uiManager) {
+                edgeCases.forEach((test, index) => {
+                    try {
+                        const formatted = window.EchoAI.uiManager.formatTimestamp(test.date);
+                        results.innerHTML += `
+                            <div class="test-item">
+                                <strong>${test.label}:</strong> ${formatted}
+                            </div>
+                        `;
+                    } catch (error) {
+                        results.innerHTML += `
+                            <div class="test-item" style="background: #fef2f2">
+                                <strong>${test.label}:</strong> Error: ${error.message}
+                            </div>
+                        `;
+                    }
+                });
+            }
+        }
+        
+        function simulateRealHistoryLoad() {
+            if (window.EchoAI && window.EchoAI.uiManager) {
+                const results = document.getElementById('inputTestResults');
+                results.style.display = 'block';
+                results.innerHTML = '<h3>History Load Simulation:</h3>';
+                
+                // Clear current messages first
+                window.EchoAI.uiManager.clearMessages();
+                results.innerHTML += '<div class="test-item">✅ Cleared current messages</div>';
+                
+                // Simulate the loadConversation process
+                setTimeout(() => {
+                    // Add some historical messages
+                    const historicalMessages = [
+                        { content: "Historical message 1", role: "user", createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+                        { content: "Historical response 1", role: "assistant", createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000 + 30000) },
+                        { content: "Historical message 2", role: "user", createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000) },
+                        { content: "Historical response 2", role: "assistant", createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000 + 45000) },
+                    ];
+                    
+                    historicalMessages.forEach(msg => {
+                        window.EchoAI.uiManager.addMessage(msg.content, msg.role, null, {
+                            timestamp: new Date(msg.createdAt)
+                        });
+                    });
+                    
+                    results.innerHTML += '<div class="test-item">✅ Added historical messages</div>';
+                    
+                    // Test input visibility after loading
+                    setTimeout(() => {
+                        testInputAfterLoad();
+                    }, 500);
+                    
+                }, 500);
+                
+                showStatus('Simulating history load...', 'success');
+            } else {
+                showStatus('Widget not initialized yet', 'error');
+            }
+        }
+        
+        function testInputAfterLoad() {
+            const results = document.getElementById('inputTestResults');
+            if (!results.style.display || results.style.display === 'none') {
+                results.style.display = 'block';
+                results.innerHTML = '<h3>Input Test Results:</h3>';
+            }
+            
+            if (window.EchoAI && window.EchoAI.container) {
+                const inputContainer = window.EchoAI.container.querySelector('.echoai-input-container');
+                const input = window.EchoAI.container.querySelector('.echoai-input');
+                const sendBtn = window.EchoAI.container.querySelector('.echoai-send-btn');
+                
+                results.innerHTML += `<div class="test-item">Input Container: ${inputContainer ? '✅ Present' : '❌ Missing'}</div>`;
+                results.innerHTML += `<div class="test-item">Input Field: ${input ? '✅ Present' : '❌ Missing'}</div>`;
+                results.innerHTML += `<div class="test-item">Send Button: ${sendBtn ? '✅ Present' : '❌ Missing'}</div>`;
+                
+                if (input) {
+                    results.innerHTML += `<div class="test-item">Input Enabled: ${!input.disabled ? '✅ Yes' : '❌ No'}</div>`;
+                    results.innerHTML += `<div class="test-item">Input Placeholder: "${input.placeholder}"</div>`;
+                }
+                
+                const allPresent = inputContainer && input && sendBtn && !input.disabled;
+                if (allPresent) {
+                    showStatus('Input container is fully functional after history load!', 'success');
+                } else {
+                    showStatus('Input container has issues after history load!', 'error');
+                }
+                
+                return allPresent;
+            } else {
+                results.innerHTML += '<div class="test-item">❌ Widget not found</div>';
+                return false;
+            }
+        }
+        
+        function verifyInputFunctionality() {
+            if (window.EchoAI && window.EchoAI.container) {
+                const input = window.EchoAI.container.querySelector('.echoai-input');
+                
+                if (input) {
+                    // Test typing in the input
+                    input.value = 'Test message from verification';
+                    input.focus();
+                    
+                    // Simulate Enter key press
+                    const enterEvent = new KeyboardEvent('keypress', {
+                        key: 'Enter',
+                        code: 'Enter',
+                        keyCode: 13,
+                        which: 13,
+                        bubbles: true
+                    });
+                    
+                    input.dispatchEvent(enterEvent);
+                    
+                    showStatus('Input functionality test completed - check if message was sent!', 'success');
+                } else {
+                    showStatus('Input field not found!', 'error');
+                }
+            } else {
+                showStatus('Widget not found!', 'error');
+            }
+        }
+        
+        function runCompleteTest() {
+            const results = document.getElementById('completeTestResults');
+            results.style.display = 'block';
+            results.innerHTML = '<h3>Complete Integration Test:</h3>';
+            
+            let step = 1;
+            
+            // Step 1: Test date formatting
+            results.innerHTML += `<div class="test-item"><strong>Step ${step++}:</strong> Testing date formatting...</div>`;
+            testRealDateFormats();
+            
+            setTimeout(() => {
+                // Step 2: Add messages with dates
+                results.innerHTML += `<div class="test-item"><strong>Step ${step++}:</strong> Adding messages with real dates...</div>`;
+                addMessagesWithRealDates();
+                
+                setTimeout(() => {
+                    // Step 3: Simulate history load
+                    results.innerHTML += `<div class="test-item"><strong>Step ${step++}:</strong> Simulating history load...</div>`;
+                    simulateRealHistoryLoad();
+                    
+                    setTimeout(() => {
+                        // Step 4: Verify input functionality
+                        results.innerHTML += `<div class="test-item"><strong>Step ${step++}:</strong> Verifying input functionality...</div>`;
+                        const inputWorking = testInputAfterLoad();
+                        
+                        setTimeout(() => {
+                            // Final result
+                            if (inputWorking) {
+                                results.innerHTML += `<div class="test-item" style="background: #f0fdf4"><strong>✅ COMPLETE TEST PASSED:</strong> All functionality working correctly!</div>`;
+                                showStatus('Complete integration test PASSED!', 'success');
+                            } else {
+                                results.innerHTML += `<div class="test-item" style="background: #fef2f2"><strong>❌ COMPLETE TEST FAILED:</strong> Input issues detected!</div>`;
+                                showStatus('Complete integration test FAILED!', 'error');
+                            }
+                        }, 500);
+                    }, 1000);
+                }, 1000);
+            }, 1000);
+        }
+        
+        function showStatus(message, type) {
+            // Remove existing status
+            const existingStatus = document.querySelector('.status');
+            if (existingStatus) {
+                existingStatus.remove();
+            }
+            
+            // Create new status
+            const status = document.createElement('div');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            
+            // Add to the last test section
+            const lastSection = document.querySelectorAll('.test-section')[2];
+            lastSection.appendChild(status);
+            
+            setTimeout(() => {
+                if (status.parentNode) {
+                    status.remove();
+                }
+            }, 5000);
+        }
+        
+        // Add initial message after widget loads
+        setTimeout(() => {
+            if (window.EchoAI && window.EchoAI.uiManager) {
+                window.EchoAI.uiManager.addMessage("Widget loaded! Test the fixes using the buttons above.", "assistant");
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

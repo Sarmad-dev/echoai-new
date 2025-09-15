@@ -1,0 +1,41 @@
+{
+  "s3": {
+    "bucket": "echoai-widget-cdn",
+    "region": "us-east-1",
+    "publicReadPolicy": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "PublicReadGetObject",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::echoai-widget-cdn/*"
+        }
+      ]
+    }
+  },
+  "cloudfront": {
+    "origins": [
+      {
+        "domainName": "echoai-widget-cdn.s3.us-east-1.amazonaws.com",
+        "originPath": "/widget",
+        "customOriginConfig": {
+          "httpPort": 80,
+          "httpsPort": 443,
+          "originProtocolPolicy": "https-only"
+        }
+      }
+    ],
+    "defaultCacheBehavior": {
+      "targetOriginId": "S3-widget-origin",
+      "viewerProtocolPolicy": "redirect-to-https",
+      "compress": true,
+      "cachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+      "ttl": {
+        "defaultTTL": 31536000,
+        "maxTTL": 31536000
+      }
+    }
+  }
+}

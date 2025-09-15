@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EchoAI Date Fix Verification</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .test-section {
+            margin-bottom: 32px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            margin: 8px 8px 8px 0;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+        
+        .test-result {
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .test-result.success {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+        
+        .test-result.error {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EchoAI Date Fix Verification</h1>
+        <p>Testing if the date formatting issue is resolved</p>
+        
+        <div class="test-section">
+            <h2>Date Format Test</h2>
+            <button onclick="testDateFormatting()">Test Date Formatting</button>
+            <button onclick="addTestMessages()">Add Test Messages</button>
+            <div id="testResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Expected Results</h2>
+            <ul>
+                <li>Messages from 5 minutes ago should show "5m ago"</li>
+                <li>Messages from 2 hours ago should show "2h ago"</li>
+                <li>Messages from yesterday should show "1d ago"</li>
+                <li>Very old messages should show the actual date</li>
+                <li>Only invalid dates should show "Just now"</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Load the enhanced widget -->
+    <script src="enhanced-widget.js"></script>
+    
+    <script>
+        // Initialize the widget
+        window.EchoAI.init({
+            chatbotId: 'test-chatbot-123',
+            apiKey: 'test-api-key-456',
+            userEmail: 'test@example.com',
+            primaryColor: '#3b82f6',
+            chatbotName: 'AI Assistant',
+            welcomeMessage: 'Testing date formatting...',
+        });
+        
+        function testDateFormatting() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<h3>Date Formatting Test Results:</h3>';
+            
+            if (!window.EchoAI || !window.EchoAI.uiManager) {
+                results.innerHTML += '<div class="test-result error">Widget not initialized</div>';
+                return;
+            }
+            
+            const now = new Date();
+            const testCases = [
+                {
+                    date: new Date(now.getTime() - 5 * 60 * 1000),
+                    expected: '5m ago',
+                    label: '5 minutes ago'
+                },
+                {
+                    date: new Date(now.getTime() - 30 * 60 * 1000),
+                    expected: '30m ago',
+                    label: '30 minutes ago'
+                },
+                {
+                    date: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+                    expected: '2h ago',
+                    label: '2 hours ago'
+                },
+                {
+                    date: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+                    expected: '1d ago',
+                    label: '1 day ago'
+                },
+                {
+                    date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+                    expected: '3d ago',
+                    label: '3 days ago'
+                },
+                {
+                    date: new Date('2024-01-15'),
+                    expected: 'date format',
+                    label: 'Old date (Jan 15, 2024)'
+                },
+                {
+                    date: null,
+                    expected: 'Just now',
+                    label: 'null date'
+                },
+                {
+                    date: undefined,
+                    expected: 'Just now',
+                    label: 'undefined date'
+                }
+            ];
+            
+            testCases.forEach(testCase => {
+                try {
+                    const result = window.EchoAI.uiManager.formatTimestamp(testCase.date);
+                    const isCorrect = testCase.expected === 'date format' 
+                        ? result !== 'Just now' && result.includes('/')
+                        : result === testCase.expected;
+                    
+                    results.innerHTML += `
+                        <div class="test-result ${isCorrect ? 'success' : 'error'}">
+                            <strong>${testCase.label}:</strong> 
+                            Expected "${testCase.expected}", Got "${result}" 
+                            ${isCorrect ? '✅' : '❌'}
+                        </div>
+                    `;
+                } catch (error) {
+                    results.innerHTML += `
+                        <div class="test-result error">
+                            <strong>${testCase.label}:</strong> Error - ${error.message} ❌
+                        </div>
+                    `;
+                }
+            });
+        }
+        
+        function addTestMessages() {
+            if (!window.EchoAI || !window.EchoAI.uiManager) {
+                alert('Widget not initialized');
+                return;
+            }
+            
+            const now = new Date();
+            const testMessages = [
+                {
+                    content: "Message from 5 minutes ago",
+                    role: "user",
+                    timestamp: new Date(now.getTime() - 5 * 60 * 1000)
+                },
+                {
+                    content: "Response from 4 minutes ago",
+                    role: "assistant", 
+                    timestamp: new Date(now.getTime() - 4 * 60 * 1000)
+                },
+                {
+                    content: "Message from 2 hours ago",
+                    role: "user",
+                    timestamp: new Date(now.getTime() - 2 * 60 * 60 * 1000)
+                },
+                {
+                    content: "Response from 2 hours ago",
+                    role: "assistant",
+                    timestamp: new Date(now.getTime() - 2 * 60 * 60 * 1000 + 30000)
+                },
+                {
+                    content: "Message from yesterday",
+                    role: "user", 
+                    timestamp: new Date(now.getTime() - 24 * 60 * 60 * 1000)
+                },
+                {
+                    content: "Response from yesterday",
+                    role: "assistant",
+                    timestamp: new Date(now.getTime() - 24 * 60 * 60 * 1000 + 60000)
+                }
+            ];
+            
+            testMessages.forEach((msg, index) => {
+                setTimeout(() => {
+                    window.EchoAI.uiManager.addMessage(msg.content, msg.role, null, {
+                        timestamp: msg.timestamp
+                    });
+                }, index * 300);
+            });
+            
+            alert('Test messages added! Check the widget to see if timestamps are correct.');
+        }
+        
+        // Auto-run the test after widget loads
+        setTimeout(() => {
+            testDateFormatting();
+        }, 2000);
+    </script>
+</body>
+</html>

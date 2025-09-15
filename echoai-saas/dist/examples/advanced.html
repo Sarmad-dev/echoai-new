@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EchoAI Widget - Advanced Integration</title>
+    <style>
+        :root {
+            --echoai-primary-color: #007bff;
+            --echoai-background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Advanced Integration Example</h1>
+    
+    <!-- Custom trigger button -->
+    <button id="chat-trigger">Open Chat</button>
+
+    <!-- EchoAI Widget -->
+    <script src="https://cdn.echoai.com/widget/1.0.0/enhanced-widget.min.js" 
+            integrity="sha384-..." 
+            crossorigin="anonymous"></script>
+    <script>
+        EchoAI.init({
+            apiKey: 'your-api-key',
+            chatbotId: 'your-chatbot-id',
+            apiUrl: 'https://your-api-endpoint.com/api/enhanced-chat/widget',
+            
+            // Advanced configuration
+            theme: {
+                primaryColor: '#007bff',
+                backgroundColor: '#ffffff',
+                borderRadius: '12px'
+            },
+            
+            features: {
+                streaming: { enabled: true },
+                imageUpload: { enabled: true },
+                conversationHistory: { enabled: true },
+                faq: { enabled: true }
+            },
+            
+            // Event handlers
+            onReady: () => console.log('Widget ready'),
+            onMessage: (message) => {
+                // Custom analytics
+                gtag('event', 'chat_message', {
+                    message_type: message.role
+                });
+            }
+        });
+
+        // Custom trigger
+        document.getElementById('chat-trigger').addEventListener('click', () => {
+            EchoAI.open();
+        });
+    </script>
+</body>
+</html>

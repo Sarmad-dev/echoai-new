@@ -1,0 +1,532 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String                @id @db.Uuid
+  email                String                @unique
+  apiKey               String                @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan                 UserPlan              @default(FREE)
+  role                 UserRole              @default(user)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @default(now()) @updatedAt
+  chatbots             Chatbot[]
+  conversations        Conversation[]
+  automationWorkflows  AutomationWorkflow[]
+  integrations         Integration[]
+  oauthStates          OAuthState[]
+}
+
+enum UserPlan {
+  FREE
+  PRO
+}
+
+enum UserRole {
+  user
+  staff
+  admin
+}
+
+enum ConversationStatus {
+  AI_HANDLING
+  AWAITING_HUMAN_RESPONSE
+  RESOLVED
+}
+
+model Chatbot {
+  id                      String                      @id @default(cuid())
+  name                    String                      @default("EchoAI Assistant")
+  welcomeMessage          String                      @default("Hello! How can I help you today?")
+  primaryColor            String                      @default("#3B82F6")
+  isActive                Boolean                     @default(true)
+  apiKey                  String                      @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  instructions            String?                     // Simple training instructions
+  userId                  String                      @db.Uuid
+  user                    User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents               Document[]
+  conversations           Conversation[]
+  conversationSessions    ConversationSession[]
+  faqs                    FAQ[]
+  faqAnalytics            FAQAnalytics[]
+  automationWorkflows     AutomationWorkflow[]
+  workflowExecutions      WorkflowExecution[]
+  // Enhanced intelligence features
+  trainingInstructions    TrainingInstruction[]
+  conversationIntelligence ConversationIntelligence[]
+  enhancedLeads           EnhancedLead[]
+  escalationRequests      EscalationRequest[]
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+
+  @@index([userId])
+  @@index([apiKey])
+}
+
+model Document {
+  id        String                     @id @default(cuid())
+  content   String
+  metadata  Json
+  embedding Unsupported("vector(1536)") // 1536 dimensions for text-embedding-3-small
+  chatbotId String
+  chatbot   Chatbot                    @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  createdAt DateTime                   @default(now())
+
+  @@index([chatbotId])
+}
+
+model Conversation {
+  id                      String                    @id @default(cuid())
+  userId                  String                    @db.Uuid
+  user                    User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  externalUserId          String?                   // For widget conversations with external users
+  externalUser            ExternalUser?             @relation(fields: [externalUserId], references: [id], onDelete: SetNull)
+  chatbotId               String?
+  chatbot                 Chatbot?                  @relation(fields: [chatbotId], references: [id], onDelete: SetNull)
+  status                  ConversationStatus        @default(AI_HANDLING)
+  customerEmail           String?
+  source                  String?
+  assignedTo              String?
+  messages                Message[]
+  memoryBuffer            Json?                     // LangChain memory state for conversation context
+  // Enhanced intelligence features
+  conversationIntelligence ConversationIntelligence?
+  enhancedLead            EnhancedLead?
+  escalationRequest       EscalationRequest?
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+
+  @@index([userId])
+  @@index([chatbotId])
+  @@index([externalUserId])
+  @@index([status])
+  @@index([assignedTo])
+  @@index([status, assignedTo])
+  @@index([customerEmail])
+}
+
+model Message {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  content        String
+  role           String           // 'user', 'assistant', or 'agent'
+  sentiment      String?          // 'positive', 'negative', 'neutral'
+  sessionId      String?          // Link to ConversationSession
+  sentimentScore Decimal?         @db.Decimal(3, 2) // -1.00 to 1.00
+  metadata       Json?
+  imageUrl       String?
+  createdAt      DateTime         @default(now())
+  session        ConversationSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  imageAnalyses  ImageAnalysis[]
+
+  @@index([sessionId])
+  @@index([conversationId])
+  @@index([role])
+  @@index([createdAt])
+}
+
+// New tables for advanced features
+
+model ExternalUser {
+  id                   String                @id @default(cuid())
+  email                String                @unique
+  firstName            String?
+  lastName             String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  conversationSessions ConversationSession[]
+  conversations        Conversation[]        // Direct conversations without sessions
+}
+
+model ConversationSession {
+  id             String       @id @default(cuid())
+  externalUserId String
+  externalUser   ExternalUser @relation(fields: [externalUserId], references: [id], onDelete: Cascade)
+  chatbotId      String
+  chatbot        Chatbot      @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  memoryBuffer   Json?        // LangChain memory state
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  messages       Message[]
+
+  @@index([externalUserId])
+  @@index([chatbotId])
+  @@index([isActive])
+}
+
+model AutomationWorkflow {
+  id               String              @id @default(cuid())
+  userId           String              @db.Uuid
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatbotId        String
+  chatbot          Chatbot             @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  flowDefinition   Json                // React Flow graph
+  stateMachine     Json                // XState machine definition
+  isActive         Boolean             @default(true)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  executions       WorkflowExecution[]
+  deadLetterQueue  DeadLetterQueue[]
+
+  @@index([userId])
+  @@index([chatbotId])
+  @@index([userId, chatbotId])
+  @@index([isActive])
+}
+
+model WorkflowExecution {
+  id           String             @id @default(cuid())
+  workflowId   String
+  workflow     AutomationWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  chatbotId    String
+  chatbot      Chatbot            @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  triggerId    String
+  triggerData  Json?
+  status       ExecutionStatus
+  executionLog Json?
+  startedAt    DateTime           @default(now())
+  completedAt  DateTime?
+
+  @@index([workflowId])
+  @@index([chatbotId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum IntegrationHealthStatus {
+  HEALTHY
+  WARNING
+  ERROR
+  UNKNOWN
+}
+
+model Integration {
+  id                        String                 @id @default(cuid())
+  userId                    String                 @db.Uuid
+  user                      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider                  String                 // 'hubspot', 'slack', 'google_sheets', 'salesforce'
+  accessToken               String                 // Encrypted
+  refreshToken              String?                // Encrypted
+  tokenExpiry               DateTime?
+  config                    Json?                  // Provider-specific configuration
+  isActive                  Boolean                @default(true)
+  lastHealthCheck           DateTime?              // Timestamp of last health check
+  healthStatus              IntegrationHealthStatus @default(UNKNOWN) // Current health status
+  lastConnectionValidation  DateTime?              // Timestamp of last connection validation
+  connectionStatus          String                 @default("unknown") // 'connected', 'disconnected', 'error', 'validating', 'unknown'
+  accountInfo               Json?                  // Cached account information from provider
+  validationError           String?                // Last validation error message
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
+  healthLogs                IntegrationHealthLog[] // Health check history
+  cacheEntries              IntegrationCache[]     // Provider-specific cached data
+
+  @@index([userId])
+  @@index([provider])
+  @@index([isActive])
+  @@index([healthStatus])
+  @@index([userId, provider, connectionStatus], name: "idx_integration_connection_status")
+}
+
+model IntegrationHealthLog {
+  id            String                    @id @default(cuid())
+  integrationId String
+  integration   Integration               @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  status        IntegrationHealthStatus
+  errorMessage  String?
+  responseTime  Int?                      // milliseconds
+  checkedAt     DateTime                  @default(now())
+
+  @@index([integrationId])
+  @@index([checkedAt])
+  @@index([status])
+}
+
+model IntegrationCache {
+  id            String      @id @default(cuid())
+  integrationId String
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  cacheKey      String      // Key for the cached data (e.g., 'account_info', 'available_objects')
+  cacheData     Json        // The cached data
+  expiresAt     DateTime    // When this cache entry expires
+  createdAt     DateTime    @default(now())
+
+  @@unique([integrationId, cacheKey])
+  @@index([expiresAt], name: "idx_integration_cache_expiry")
+}
+
+model FAQ {
+  id           String         @id @default(cuid())
+  chatbotId    String
+  chatbot      Chatbot        @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  question     String
+  answer       String
+  category     String?
+  displayOrder Int            @default(0)
+  isActive     Boolean        @default(true)
+  popularity   Int            @default(0)
+  tags         String[]
+  lastUpdated  DateTime       @default(now())
+  createdAt    DateTime       @default(now())
+  analytics    FAQAnalytics[]
+
+  @@index([chatbotId])
+  @@index([isActive])
+  @@index([displayOrder])
+  @@index([popularity(sort: Desc)])
+}
+
+model FAQAnalytics {
+  id         String   @id @default(cuid())
+  faqId      String
+  faq        FAQ      @relation(fields: [faqId], references: [id], onDelete: Cascade)
+  chatbotId  String
+  chatbot    Chatbot  @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  action     String   // 'view', 'click', 'search'
+  userAgent  String?
+  sessionId  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([faqId])
+  @@index([chatbotId])
+  @@index([action])
+  @@index([createdAt(sort: Desc)])
+}
+
+model ImageAnalysis {
+  id              String   @id @default(cuid())
+  messageId       String
+  message         Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  imageUrl        String
+  prompt          String
+  analysisResult  Json
+  processingTime  Int?     // milliseconds
+  createdAt       DateTime @default(now())
+
+  @@index([messageId])
+}
+
+model DeadLetterQueue {
+  id            String   @id @default(cuid())
+  executionId   String   @unique
+  workflowId    String
+  workflow      AutomationWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  triggerEvent  Json
+  error         Json
+  retryCount    Int
+  addedAt       DateTime @default(now())
+  lastRetryAt   DateTime @default(now())
+
+  @@index([workflowId])
+  @@index([addedAt])
+}
+
+model ErrorNotifications {
+  id        String   @id @default(cuid())
+  type      String   // WORKFLOW_EXECUTION_FAILED, DATABASE_ERROR, etc.
+  severity  String   // CRITICAL, HIGH, MEDIUM, LOW
+  title     String
+  message   String
+  metadata  Json?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([severity])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model OAuthState {
+  state      String   @id
+  userId     String   @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  providerId String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([expiresAt])
+  @@index([userId])
+}
+
+// Enhanced Chatbot Intelligence Models
+
+model TrainingInstruction {
+  id        String                     @id @default(cuid())
+  chatbotId String
+  chatbot   Chatbot                    @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  type      InstructionType
+  title     String
+  content   String
+  priority  Int                        @default(1)
+  isActive  Boolean                    @default(true)
+  embedding Unsupported("vector(1536)") // 1536 dimensions for instruction embeddings
+  analytics InstructionAnalytics[]
+  createdAt DateTime                   @default(now())
+  updatedAt DateTime                   @updatedAt
+
+  @@index([chatbotId])
+  @@index([type])
+  @@index([isActive])
+  @@index([priority])
+}
+
+model InstructionAnalytics {
+  id                 String              @id @default(cuid())
+  instructionId      String
+  instruction        TrainingInstruction @relation(fields: [instructionId], references: [id], onDelete: Cascade)
+  usageCount         Int                 @default(0)
+  effectivenessScore Decimal             @default(0.0) @db.Decimal(3, 2) // 0.00 to 1.00
+  lastUsed           DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@unique([instructionId])
+  @@index([instructionId])
+  @@index([effectivenessScore])
+  @@index([lastUsed])
+}
+
+enum InstructionType {
+  BEHAVIOR
+  KNOWLEDGE
+  TONE
+  ESCALATION
+}
+
+model ConversationIntelligence {
+  id                    String       @id @default(cuid())
+  conversationId        String       @unique
+  conversation          Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId                String       @db.Uuid
+  chatbotId             String
+  chatbot               Chatbot      @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  intelligenceData      Json         // Stores conversation analysis data
+  contextUnderstanding  Decimal?     @db.Decimal(3, 2) // 0.00 to 1.00
+  proactiveScore        Decimal?     @db.Decimal(3, 2) // 0.00 to 1.00
+  helpfulnessScore      Decimal?     @db.Decimal(3, 2) // 0.00 to 1.00
+  topicTransitions      Json?        // Track topic changes in conversation
+  userProfile           Json?        // Learned user preferences and patterns
+  conversationSummary   String?      // AI-generated summary of conversation
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  @@index([chatbotId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model EnhancedLead {
+  id                   String       @id @default(cuid())
+  conversationId       String       @unique
+  conversation         Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  chatbotId            String
+  chatbot              Chatbot      @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  contactInfo          Json?        // Email, phone, name, company
+  qualificationData    Json?        // Budget, timeline, authority, need
+  conversationMetrics  Json?        // Engagement score, intent strength, urgency
+  collectionStrategy   CollectionStrategy @default(CONVERSATIONAL)
+  leadScore            Decimal?     @db.Decimal(3, 2) // 0.00 to 1.00
+  priority             LeadPriority @default(MEDIUM)
+  status               LeadStatus   @default(NEW)
+  qualificationQuestions Json?      // Generated questions for lead qualification
+  followUpActions      Json?        // Recommended follow-up actions
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@index([chatbotId])
+  @@index([status])
+  @@index([priority])
+  @@index([leadScore])
+  @@index([createdAt])
+}
+
+enum CollectionStrategy {
+  DIRECT
+  CONVERSATIONAL
+  PROGRESSIVE
+}
+
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum LeadStatus {
+  NEW
+  QUALIFIED
+  CONTACTED
+  CONVERTED
+  LOST
+}
+
+model EscalationRequest {
+  id               String          @id @default(cuid())
+  conversationId   String          @unique
+  conversation     Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  chatbotId        String
+  chatbot          Chatbot         @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  escalationType   EscalationType
+  triggerReason    String?         // Description of what triggered escalation
+  escalationData   Json?           // Additional context and metadata
+  status           EscalationStatus @default(PENDING)
+  assignedAgentId  String?         // ID of human agent assigned
+  urgencyLevel     UrgencyLevel    @default(MEDIUM)
+  customerSentiment String?        // Customer's emotional state
+  conversationContext Json?        // Relevant conversation history and context
+  resolvedAt       DateTime?
+  resolutionNotes  String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([chatbotId])
+  @@index([status])
+  @@index([escalationType])
+  @@index([urgencyLevel])
+  @@index([createdAt])
+}
+
+enum EscalationType {
+  TECHNICAL
+  FRUSTRATION
+  COMPLEXITY
+  COMPLAINT
+  REQUEST
+}
+
+enum EscalationStatus {
+  PENDING
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  CANCELLED
+}
+
+enum UrgencyLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}

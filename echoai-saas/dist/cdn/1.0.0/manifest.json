@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "buildTime": "2025-09-11T18:42:55.639Z",
+  "files": {
+    "enhanced-widget.js": {
+      "size": 284352,
+      "hash": "cbe4a06f",
+      "url": "https://cdn.echoai.com/widget/1.0.0/enhanced-widget.js",
+      "integrity": "sha256-y+Sgb9O1oVDiUdTvl4pVwP1ybUJISt63ivnRZ9AM7fE="
+    },
+    "enhanced-widget.min.js": {
+      "size": 176059,
+      "hash": "c69d84fd",
+      "url": "https://cdn.echoai.com/widget/1.0.0/enhanced-widget.min.js",
+      "integrity": "sha256-xp2E/eTc9Cv62C4j1CdIVSYquEKfLwJJzqEMsie4bRU="
+    }
+  },
+  "integrity": {}
+}
